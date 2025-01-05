@@ -1,135 +1,113 @@
-import random
 from Environments import Hangar, Entrepot, Garage
+from collections import defaultdict
+import random
 
-class Agent:
-    def __init__(self, env, alpha=0.1, gamma=0.9, epsilon=0.2):
-        self.env = env
-        self.alpha = alpha
-        self.gamma = gamma
-        self.epsilon = epsilon
-        self.q_table = {(state, action): 0.0 for state in env.states for action in env.actions}
-        self.path = []  # To track the path taken by the agent
+class MultiTaskQLearningAgent:
+    def __init__(self, alpha=0.1, epsilon=0.1, gamma=0.99):
+        self.alpha = alpha  # Learning rate
+        self.epsilon = epsilon  # Exploration rate for ε-greedy policy
+        self.gamma = gamma  # Discount factor for future rewards
+        self.Q = defaultdict(lambda: 0)  # Q-values initialized to 0
 
-    def choose_action(self, state):
-        if random.uniform(0, 1) < self.epsilon:
-            return random.choice(self.env.actions)
+    def select_action(self, state, actions):
+        """
+        Select an action based on an ε-greedy policy.
+        - Explore with probability epsilon
+        - Exploit the learned policy (choose action with highest Q-value) otherwise
+        """
+        if random.random() < self.epsilon:
+            return random.choice(actions)  # Explore: random action
         else:
-            q_values = {action: self.q_table[(state, action)] for action in self.env.actions}
-            max_q = max(q_values.values())
-            return random.choice([action for action, q in q_values.items() if q == max_q])
+            q_values = {action: self.Q[(state, action)] for action in actions}
+            return max(q_values, key=q_values.get)  # Exploit: action with max Q-value
 
-    def update_q_value(self, state, action, reward, next_state):
-        max_next_q = max(self.q_table[(next_state, a)] for a in self.env.actions)
-        self.q_table[(state, action)] += self.alpha * (
-            reward + self.gamma * max_next_q - self.q_table[(state, action)]
-        )
-
-    def step(self, state, action):
-        next_state = (state[0] + action[0], state[1] + action[1])
-        if next_state in self.env.obstacle_cells or next_state not in self.env.states:
-            return state  # Stay in the same state if invalid move
-        return next_state
-
-    def get_reward(self, state, action, next_state):
-        if self.env.task_type == 'H':
-            if next_state in self.env.object_cells:
-                self.env.object_cells.remove(next_state)
-                return 10
-            elif next_state == self.env.exit_state:
-                return 20
-        elif self.env.task_type == 'E':
-            if next_state in self.env.object_cells:
-                self.env.object_cells.remove(next_state)
-                return 10
-            elif not self.env.object_cells:
-                return 20
-        elif self.env.task_type == 'G':
-            if next_state in self.env.object_cells:
-                return 20
-        return -1
-
-    def train(self, episodes=1000):
-        for _ in range(episodes):
-            state = self.env.start_state
-            while True:
-                action = self.choose_action(state)
-                next_state = self.step(state, action)
-                reward = self.get_reward(state, action, next_state)
-                self.update_q_value(state, action, reward, next_state)
-                state = next_state
-                if state == self.env.exit_state or state not in self.env.states:
-                    break
-
-    def execute_task(self):
-        state = self.env.start_state
-        self.path = [state]
-        while True:
-            action = self.choose_action(state)
-            next_state = self.step(state, action)
-
-            # Update environment for specific tasks
-            if self.env.task_type == 'H' and next_state in self.env.object_cells:
-                self.env.object_cells.remove(next_state)
-            elif self.env.task_type == 'E' and next_state in self.env.object_cells:
-                self.env.object_cells.remove(next_state)
-
-            self.path.append(next_state)
-            if next_state == self.env.exit_state or next_state not in self.env.states:
-                break
-            state = next_state
-
-        return self.path
-
-    def print_with_path(self, path):
+    def train(self, environments, episodes_per_env=500):
         """
-        Print the grid with the path marked by '*'.
+        Train the agent across multiple environments by alternating between them.
+        Each environment is trained for a specified number of episodes.
         """
-        grid = [["." for _ in range(self.env.width)] for _ in range(self.env.height)]
-        for (i, j) in self.env.obstacle_cells:
-            grid[i][j] = "X"
-        for (i, j) in self.env.object_cells:
-            if self.env.task_type == 'H':
-                grid[i][j] = "Bu" if (i, j) == self.env.bucket_cell else "Br"
-            elif self.env.task_type == 'E':
-                grid[i][j] = "D"
-            elif self.env.task_type == 'G':
-                grid[i][j] = "R"
-        for (i, j) in path:
-            grid[i][j] = "*" if grid[i][j] == "." else grid[i][j]
+        for episode in range(episodes_per_env * len(environments)):
+            # Alternate between environments (round-robin style)
+            env = environments[episode % len(environments)]
+            state = (env.task_type, env.start_state)  # Include task type in the state
 
-        # Print the grid
-        horizontal_border = "+" + "---+" * self.env.width
-        print(horizontal_border)
-        for row in grid:
-            print("|" + "|".join(cell.center(3) for cell in row) + "|")
-            print(horizontal_border)
+            while state[1] != env.exit_state:  # Continue until reaching the exit
+                action = self.select_action(state, env.actions)
+                next_state_coords, reward = env.step(state[1], action)
+                next_state = (env.task_type, next_state_coords)  # Update next state with task type
+
+                # Update Q-value using the Bellman equation
+                best_next_action = max(env.actions, key=lambda a: self.Q[(next_state, a)])
+                td_target = reward + self.gamma * self.Q[(next_state, best_next_action)]
+                td_error = td_target - self.Q[(state, action)]
+                self.Q[(state, action)] += self.alpha * td_error
+
+                state = next_state  # Move to the next state
+
+            # Log progress every 100 episodes
+            if (episode + 1) % 100 == 0:
+                print(f"Episode {episode + 1}/{episodes_per_env * len(environments)} completed.")
+
+    def update_policy(self, environments):
+        """
+        Extract optimal policies for each environment after training.
+        A policy maps states to the best possible action for that state.
+        """
+        self.policies = {}
+        for env in environments:
+            task_type = env.task_type
+            self.policies[task_type] = {
+                state: max(
+                    {action: self.Q[((task_type, state), action)] for action in env.actions},
+                    key=lambda a: self.Q[((task_type, state), a)]
+                ) for state in env.states
+            }
+
+    def print_policy(self, env):
+        """
+        Print the learned policy for a specific environment.
+        """
+        task_policy = self.policies.get(env.task_type, {})
+        env.print_policy(task_policy)
+
+    def print_value_function(self, env):
+        """
+        Print the learned value function for a specific environment.
+        """
+        task_type = env.task_type
+        V = {state: max(self.Q[((task_type, state), action)] for action in env.actions) for state in env.states}
+        env.print_value_function(V)
 
 
-# Example usage
 if __name__ == "__main__":
-    print("Hangar Environment:")
+    # Initialize the environments
     hangar = Hangar()
-    hangar.print_board()
-    hangar_agent = Agent(hangar)
-    hangar_agent.train(episodes=500)
-    path_hangar = hangar_agent.execute_task()
-    print("\nPath taken in Hangar:", path_hangar)
-    hangar_agent.print_with_path(path_hangar)
-
-    print("\nEntrepot Environment:")
     entrepot = Entrepot()
-    entrepot.print_board()
-    entrepot_agent = Agent(entrepot)
-    entrepot_agent.train(episodes=500)
-    path_entrepot = entrepot_agent.execute_task()
-    print("\nPath taken in Entrepot:", path_entrepot)
-    entrepot_agent.print_with_path(path_entrepot)
-
-    print("\nGarage Environment:")
     garage = Garage()
+
+    # Display the initial environments
+    print("Initial Hangar Environment:")
+    hangar.print_board()
+
+    print("\nInitial Entrepot Environment:")
+    entrepot.print_board()
+
+    print("\nInitial Garage Environment:")
     garage.print_board()
-    garage_agent = Agent(garage)
-    garage_agent.train(episodes=500)
-    path_garage = garage_agent.execute_task()
-    print("\nPath taken in Garage:", path_garage)
-    garage_agent.print_with_path(path_garage)
+
+    # Create and train the multi-task agent across all environments
+    print("\nTraining Multi-Task Agent...")
+    agent = MultiTaskQLearningAgent()
+    agent.train([hangar, entrepot, garage], episodes_per_env=500)
+
+    # Update and display the policies for each environment
+    print("\nPolicies for Hangar:")
+    agent.update_policy([hangar, entrepot, garage])
+    agent.print_policy(hangar)
+
+    print("\nPolicies for Entrepot:")
+    agent.print_policy(entrepot)
+
+    print("\nPolicies for Garage:")
+    agent.print_policy(garage)
+
