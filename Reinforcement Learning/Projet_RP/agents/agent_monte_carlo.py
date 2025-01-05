@@ -1,6 +1,7 @@
 from collections import defaultdict
 import random
 
+
 class MonteCarloAgent:
     def __init__(self, mdp, epsilon=0.1, gamma=0.99):
         self.mdp = mdp
@@ -8,9 +9,12 @@ class MonteCarloAgent:
         self.gamma = gamma
         self.Q = defaultdict(lambda: 0)
         self.returns = defaultdict(list)
-        self.policy = {state: random.choice(self.mdp.actions) for state in self.mdp.states}
+        self.policy = {
+            state: random.choice(self.mdp.actions) for state in self.mdp.states
+        }
 
     def generate_episode(self):
+        self.mdp.reset()
         state = self.mdp.initial_state
         episode = []
 
@@ -52,7 +56,9 @@ class MonteCarloAgent:
                 G = reward + self.gamma * G
                 if (state, action) not in visited:
                     self.returns[(state, action)].append(G)
-                    self.Q[(state, action)] = sum(self.returns[(state, action)]) / len(self.returns[(state, action)])
+                    self.Q[(state, action)] = sum(self.returns[(state, action)]) / len(
+                        self.returns[(state, action)]
+                    )
                     visited.add((state, action))
 
             self.update_policy()
@@ -61,5 +67,8 @@ class MonteCarloAgent:
         self.mdp.print_policy(self.policy)
 
     def print_value_function(self):
-        V = {state: max(self.Q[(state, action)] for action in self.mdp.actions) for state in self.mdp.states}
+        V = {
+            state: max(self.Q[(state, action)] for action in self.mdp.actions)
+            for state in self.mdp.states
+        }
         self.mdp.print_value_function(V)
