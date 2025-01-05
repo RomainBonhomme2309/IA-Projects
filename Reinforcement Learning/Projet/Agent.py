@@ -37,7 +37,6 @@ class QLearningAgent:
 
                 state = next_state
 
-            # Optionally log progress
             if (episode + 1) % 100 == 0:
                 print(f"Episode {episode + 1}/{episodes} completed.")
 
@@ -59,12 +58,12 @@ class QLearningAgent:
 
 
 if __name__ == "__main__":
-    # Initialiser les environnements
+    # Initialize Environments
     hangar = Hangar()
     entrepot = Entrepot()
     garage = Garage()
 
-    # Afficher les environnements initiaux
+    # Print Initial Environments
     print("Initial Hangar Environment:")
     hangar.print_board()
 
@@ -74,7 +73,7 @@ if __name__ == "__main__":
     print("\nInitial Garage Environment:")
     garage.print_board()
 
-    # Créer et entraîner les agents pour chaque tâche
+    # Create and Train Agents for each Tasks
     print("\nTraining for Hangar...")
     agent_h = QLearningAgent(hangar)
     agent_h.train(episodes=1000)

@@ -75,6 +75,7 @@ class GridWorld:
             print(row)
             print(horizontal_border)
 
+
 class Hangar(GridWorld):
     def __init__(self, height=5, width=5):
         super().__init__(height, width, task_type='H')
@@ -87,6 +88,7 @@ class Hangar(GridWorld):
         )
         self.object_cells = {self.bucket_cell, self.broom_cell}
 
+
 class Entrepot(GridWorld):
     def __init__(self, height=7, width=7, num_dirt=10):
         super().__init__(height, width, task_type='E')
@@ -98,6 +100,7 @@ class Entrepot(GridWorld):
             list(self.states - self.obstacle_cells - {self.start_state, self.exit_state}),
             num_dirt
         ))
+
 
 class Garage(GridWorld):
     def __init__(self, height=5, width=5, num_recharge_stations=2):
