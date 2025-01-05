@@ -59,38 +59,14 @@ class HangarWorldMDP(GridWorldMDP):
                 )
 
     def compute_reward(self, state, new_state):
-        if new_state in self.visited_states:
-            return -0.2  # Penalty for revisiting the same state
-
-        # Mark the state as visited
-        self.visited_states.add(new_state)
-
-        if (
-            new_state == self.material_state1
-            and self.material_state1 not in self.visited_material_states
-        ):
-            self.visited_material_states.add(self.material_state1)
-            return 0.5  # Partial reward for reaching material_state1
-        elif (
-            new_state == self.material_state2
-            and self.material_state2 not in self.visited_material_states
-        ):
-            self.visited_material_states.add(self.material_state2)
-            return 0.5  # Partial reward for reaching material_state2
-        elif new_state == self.terminal_state:
-            if (
-                self.material_state1 in self.visited_material_states
-                and self.material_state2 in self.visited_material_states
-            ):
-                return 1.0  # Full reward for reaching the terminal after visiting both materials
-            else:
-                return -1.0  # Penalty for reaching terminal without visiting materials
-        return 0.0  # No reward for other transitions
-
-    def reset(self):
-        """Reset the visited states and material states for a new episode."""
-        self.visited_states = set()
-        self.visited_material_states = set()
+        if new_state == self.terminal_state:
+            return 2
+        elif new_state == self.material_state1:
+            return 1
+        elif new_state == self.material_state2:
+            return 1
+        else:
+            return 0
 
     def print_board(self):
         cell_width = 3

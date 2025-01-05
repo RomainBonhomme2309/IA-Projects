@@ -2,7 +2,7 @@ from collections import defaultdict
 import random
 
 
-class MonteCarloAgent:
+class MonteCarloAgentModelBased:
     def __init__(self, mdp, epsilon=0.1, gamma=0.99):
         self.mdp = mdp
         self.epsilon = epsilon
@@ -17,11 +17,17 @@ class MonteCarloAgent:
         state = self.mdp.initial_state
         episode = []
 
+        visited = set()
+
         count = 0
         while state != self.mdp.terminal_state and count < max_steps:
             action = self.select_action(state)
             new_state = self.take_action(state, action)
-            reward = self.mdp.rewards.get((state, action, new_state), 0)
+            if (state, action, new_state) in visited:
+                reward = -0.2
+            else:
+                visited.add((state, action, new_state))
+                reward = self.mdp.rewards.get((state, action, new_state), 0)
             episode.append((state, action, reward))
             state = new_state
             count += 1
