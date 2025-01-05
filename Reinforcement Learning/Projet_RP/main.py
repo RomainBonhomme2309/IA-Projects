@@ -22,7 +22,7 @@ from agents.agent_qlearning import QLearningAgent
 
 if __name__ == "__main__":
     # Création de la grille
-    hangar = HangarWorldMDP(4, 4, 3)
+    hangar = HangarWorldMDP(4, 4, 1)
     print("Grille initiale:")
     hangar.print_board()
 

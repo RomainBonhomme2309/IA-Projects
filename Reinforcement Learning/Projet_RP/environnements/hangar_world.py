@@ -44,9 +44,10 @@ class HangarWorldMDP(GridWorldMDP):
         }
 
         self.visited_material_states = set()
+        self.visited_states = set()  # Track visited states for penalizing revisits
 
         for state in self.states:
-            if state in self.bad_states:
+            if state in self.bad_states or state == self.terminal_state:
                 continue
             for action in self.actions:
                 new_state = (state[0] + action[0], state[1] + action[1])
@@ -58,6 +59,12 @@ class HangarWorldMDP(GridWorldMDP):
                 )
 
     def compute_reward(self, state, new_state):
+        if new_state in self.visited_states:
+            return -0.2  # Penalty for revisiting the same state
+
+        # Mark the state as visited
+        self.visited_states.add(new_state)
+
         if (
             new_state == self.material_state1
             and self.material_state1 not in self.visited_material_states
@@ -81,9 +88,8 @@ class HangarWorldMDP(GridWorldMDP):
         return 0.0  # No reward for other transitions
 
     def reset(self):
-        """
-        Reset the environment, including the visited material states.
-        """
+        """Reset the visited states and material states for a new episode."""
+        self.visited_states = set()
         self.visited_material_states = set()
 
     def print_board(self):
