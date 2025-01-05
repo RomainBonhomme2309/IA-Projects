@@ -31,12 +31,6 @@ if __name__ == "__main__":
 
     mc_agent = MonteCarloAgent(hangar, epsilon=0.1, gamma=0.99)
 
-    print("Politique initiale (aléatoire):")
-    hangar.print_policy(mc_agent.policy)
-
-    print("Valeur des états initale (0):")
-    mc_agent.print_value_function()
-
     mc_agent.train(episodes=1000)
 
     print("Politique après apprentissage Monte Carlo:")
