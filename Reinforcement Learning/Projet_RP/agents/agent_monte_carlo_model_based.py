@@ -70,7 +70,7 @@ class MonteCarloAgentModelBased:
                     visited.add((state, action))
 
             self.update_policy()
-        print()
+        print("\n")
 
     def print_policy(self):
         self.mdp.print_policy(self.policy)
