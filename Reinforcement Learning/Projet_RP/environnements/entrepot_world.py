@@ -1,8 +1,7 @@
 import random
-from .grid_world import GridWorldMDP
 
 
-class EntrepotWorldMDP(GridWorldMDP):
+class EntrepotWorldMDP:
     def __init__(self, height: int, width: int, number_of_holes: int):
         self.height = height
         self.width = width

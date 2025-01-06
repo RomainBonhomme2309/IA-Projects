@@ -21,15 +21,15 @@ if __name__ == "__main__":
 
     mc_agent = MonteCarloAgent(hangar, epsilon=0.3, gamma=0.99)
 
-    mc_agent.train(episodes=5000)
+    mc_agent.train(episodes=1000)
 
     print("Politique après apprentissage Monte Carlo:")
     mc_agent.print_policy()
 
-    """ print("Valeur des états après apprentissage Monte Carlo:")
-    mc_agent.print_value_function() """
+    print("Valeur des états après apprentissage Monte Carlo:")
+    mc_agent.print_value_function()
 
-    # Value Iteration (model based)
+    """ # Value Iteration (model based)
     print("=" * 10, "Value Iteration (model based)", "=" * 10, "\n")
 
     vi_agent = ValueIterationAgent(hangar, gamma=0.9, theta=0.0001)
@@ -39,5 +39,5 @@ if __name__ == "__main__":
     print("Politique après apprentissage Value Iteration:")
     vi_agent.print_policy()
 
-    """ print("Valeur des états après apprentissage Value Iteration:")
+    print("Valeur des états après apprentissage Value Iteration:")
     vi_agent.print_value_function() """

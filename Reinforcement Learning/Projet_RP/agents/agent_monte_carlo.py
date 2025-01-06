@@ -14,15 +14,14 @@ class MonteCarloAgent:
         }
 
     def generate_episode(self, max_steps=1000):
-        self.mdp.reset()
         state = self.mdp.initial_state
         episode = []
 
         count = 0
         while state != self.mdp.terminal_state and count < max_steps:
             action = self.select_action(state)
-            new_state = self.take_action(state, action)
-            reward = self.mdp.get_reward((state, action, new_state))
+            new_state = self.mdp.take_action(state, action)
+            reward = self.mdp.rewards.get((state, action, new_state), 0)
             episode.append((state, action, reward))
             state = new_state
             count += 1
@@ -36,12 +35,6 @@ class MonteCarloAgent:
         else:
             q_values = {action: self.Q[(state, action)] for action in self.mdp.actions}
             return max(q_values, key=q_values.get)
-
-    def take_action(self, state, action):
-        new_state = (state[0] + action[0], state[1] + action[1])
-        if new_state not in self.mdp.states or new_state in self.mdp.bad_states:
-            new_state = state
-        return new_state
 
     def update_policy(self):
         for state in self.mdp.states:
