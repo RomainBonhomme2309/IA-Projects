@@ -14,6 +14,7 @@ class MonteCarloAgent:
         }
 
     def generate_episode(self, max_steps=1000):
+        self.mdp.reset()
         state = self.mdp.initial_state
         episode = []
 
@@ -21,7 +22,7 @@ class MonteCarloAgent:
         while state != self.mdp.terminal_state and count < max_steps:
             action = self.select_action(state)
             new_state = self.take_action(state, action)
-            reward = self.mdp.rewards.get((state, action, new_state), 0)
+            reward = self.mdp.get_reward((state, action, new_state))
             episode.append((state, action, reward))
             state = new_state
             count += 1

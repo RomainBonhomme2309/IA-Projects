@@ -12,22 +12,22 @@ from agents.agent_value_iteration import ValueIterationAgent
 
 if __name__ == "__main__":
     # Création de Hangar
-    hangar = HangarWorldMDP(4, 4, 1, 3)
+    hangar = HangarWorldMDP(4, 4, 1, 2)
     print("=" * 20, "Environnement 1: HANGAR", "=" * 20)
     hangar.print_board()
 
     # Monte Carlo (model free)
     print("=" * 10, "Monte Carlo (model free)", "=" * 10, "\n")
 
-    mc_agent = MonteCarloAgent(hangar, epsilon=0.3, gamma=0.9)
+    mc_agent = MonteCarloAgent(hangar, epsilon=0.3, gamma=0.99)
 
-    mc_agent.train(episodes=1000)
+    mc_agent.train(episodes=10000)
 
     print("Politique après apprentissage Monte Carlo:")
     mc_agent.print_policy()
 
-    print("Valeur des états après apprentissage Monte Carlo:")
-    mc_agent.print_value_function()
+    """ print("Valeur des états après apprentissage Monte Carlo:")
+    mc_agent.print_value_function() """
 
     # Value Iteration (model based)
     print("=" * 10, "Value Iteration (model based)", "=" * 10, "\n")
@@ -39,5 +39,5 @@ if __name__ == "__main__":
     print("Politique après apprentissage Value Iteration:")
     vi_agent.print_policy()
 
-    print("Valeur des états après apprentissage Value Iteration:")
-    vi_agent.print_value_function()
+    """ print("Valeur des états après apprentissage Value Iteration:")
+    vi_agent.print_value_function() """

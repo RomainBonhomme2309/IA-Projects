@@ -3,7 +3,9 @@ from .grid_world import GridWorldMDP
 
 
 class HangarWorldMDP(GridWorldMDP):
-    def __init__(self, height: int, width: int, number_of_holes: int, number_of_materials: int):
+    def __init__(
+        self, height: int, width: int, number_of_holes: int, number_of_materials: int
+    ):
         self.height = height
         self.width = width
         self.number_of_holes = number_of_holes
@@ -31,6 +33,9 @@ class HangarWorldMDP(GridWorldMDP):
             list(self.states - set(forbidden_states)), number_of_materials
         )
 
+        self.visited_states = set()
+        self.visited_material_states = set()
+
         self.transition_probabilities = {
             (state, action, new_state): 0
             for state in self.states
@@ -43,9 +48,6 @@ class HangarWorldMDP(GridWorldMDP):
             for action in self.actions
             for new_state in self.states
         }
-
-        self.visited_material_states = set()
-        self.visited_states = set()  # Track visited states for penalizing revisits
 
         for state in self.states:
             if state in self.bad_states or state == self.terminal_state:
@@ -66,6 +68,29 @@ class HangarWorldMDP(GridWorldMDP):
             return 1
         else:
             return 0
+
+    def get_reward(self, key):
+        new_state = key[2]
+        if (
+            new_state in self.material_states
+            and new_state not in self.visited_material_states
+        ):
+            self.visited_material_states.add(new_state)
+            self.visited_states.add(new_state)
+            return 1.0
+        elif (
+            new_state == self.terminal_state
+            and len(self.visited_material_states) == self.number_of_materials
+        ):
+            return 2.0
+        elif new_state in self.visited_states:
+            return -0.1
+        else:
+            self.visited_states.add(new_state)
+            return 0.0
+
+    def reset(self):
+        self.visited_material_states = set()
 
     def print_board(self):
         cell_width = 3
