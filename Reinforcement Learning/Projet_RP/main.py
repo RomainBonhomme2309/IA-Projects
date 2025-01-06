@@ -12,7 +12,7 @@ from agents.agent_value_iteration import ValueIterationAgent
 
 if __name__ == "__main__":
     # Création de Hangar
-    hangar = HangarWorldMDP(4, 4, 1)
+    hangar = HangarWorldMDP(4, 4, 1, 3)
     print("=" * 20, "Environnement 1: HANGAR", "=" * 20)
     hangar.print_board()
 

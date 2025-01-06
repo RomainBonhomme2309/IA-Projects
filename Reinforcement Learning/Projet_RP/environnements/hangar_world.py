@@ -3,10 +3,11 @@ from .grid_world import GridWorldMDP
 
 
 class HangarWorldMDP(GridWorldMDP):
-    def __init__(self, height: int, width: int, number_of_holes: int):
+    def __init__(self, height: int, width: int, number_of_holes: int, number_of_materials: int):
         self.height = height
         self.width = width
         self.number_of_holes = number_of_holes
+        self.number_of_materials = number_of_materials
 
         self.states = set((i, j) for i in range(height) for j in range(width))
 
@@ -26,8 +27,8 @@ class HangarWorldMDP(GridWorldMDP):
 
         forbidden_states = self.bad_states + [self.initial_state, self.terminal_state]
 
-        self.material_state1, self.material_state2 = random.sample(
-            list(self.states - set(forbidden_states)), 2
+        self.material_states = random.sample(
+            list(self.states - set(forbidden_states)), number_of_materials
         )
 
         self.transition_probabilities = {
@@ -61,9 +62,7 @@ class HangarWorldMDP(GridWorldMDP):
     def compute_reward(self, state, new_state):
         if new_state == self.terminal_state:
             return 2
-        elif new_state == self.material_state1:
-            return 1
-        elif new_state == self.material_state2:
+        elif new_state in self.material_states:
             return 1
         else:
             return 0
@@ -80,10 +79,8 @@ class HangarWorldMDP(GridWorldMDP):
                     cell = "T".center(cell_width)
                 elif (i, j) in self.bad_states:
                     cell = "X".center(cell_width)
-                elif (i, j) == self.material_state1:
-                    cell = "M1".center(cell_width)
-                elif (i, j) == self.material_state2:
-                    cell = "M2".center(cell_width)
+                elif (i, j) in self.material_states:
+                    cell = "M".center(cell_width)
                 else:
                     cell = ".".center(cell_width)
                 row += cell + "|"
