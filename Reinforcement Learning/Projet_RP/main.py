@@ -43,7 +43,7 @@ def run_task(
 if __name__ == "__main__":
     # Environnement 1: Hangar
     print("=" * 20, "Environnement 1: HANGAR", "=" * 20)
-    env = HangarWorldMDP(4, 4, 2, 2)
+    env = HangarWorldMDP(4, 4, 1, 2)
     agent_model_free = MonteCarloAgent(env, epsilon=0.3, gamma=0.99)
     agent_model_based = ValueIterationAgent(env, gamma=0.9, theta=0.0001)
     run_task(
@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     # Environnement 2: Entrepot
     print("=" * 20, "Environnement 2: ENTREPOT", "=" * 20)
-    env = EntrepotWorldMDP(4, 4, 3, 3)
+    env = EntrepotWorldMDP(4, 4, 1, 3)
     agent_model_free = MonteCarloAgent(env, epsilon=0.3, gamma=0.99)
     agent_model_based = ValueIterationAgent(env, gamma=0.9, theta=0.0001)
     run_task(
@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     # Environnement 3: Garage
     print("=" * 20, "Environnement 3: GARAGE", "=" * 20)
-    env = GarageWorldMDP(4, 4, 3, 2)
+    env = GarageWorldMDP(4, 4, 1, 2)
     agent_model_free = MonteCarloAgent(env, epsilon=0.3, gamma=0.99)
     agent_model_based = ValueIterationAgent(env, gamma=0.9, theta=0.0001)
     run_task(
