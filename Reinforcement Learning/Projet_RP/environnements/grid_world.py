@@ -1,23 +1,4 @@
 class GridWorldMDP:
-    def print_board(self):
-        cell_width = 3
-        horizontal_border = "+" + ("-" * cell_width + "+") * self.width
-
-        print(horizontal_border)
-        for i in range(self.height):
-            row = "|"
-            for j in range(self.width):
-                if (i, j) == self.terminal_state:
-                    cell = "T".center(cell_width)
-                elif (i, j) in self.bad_states:
-                    cell = "X".center(cell_width)
-                else:
-                    cell = ".".center(cell_width)
-                row += cell + "|"
-            print(row)
-            print(horizontal_border)
-        print()
-
     def print_policy(self, policy: dict):
         cell_width = 3
 
