@@ -11,6 +11,7 @@ class HangarWorldMDP:
         self.number_of_holes = number_of_holes
         self.number_of_materials = number_of_materials
 
+        # Create all possible states (position + materials)
         self.states = set(
             (i, j, tuple(combination))
             for i in range(height)
@@ -20,6 +21,7 @@ class HangarWorldMDP:
             )
         )
 
+        # Define the actions
         UP = (-1, 0)
         DOWN = (1, 0)
         LEFT = (0, -1)
@@ -27,6 +29,7 @@ class HangarWorldMDP:
 
         self.actions = [UP, DOWN, LEFT, RIGHT]
 
+        # Define the bad states (holes)
         bad_states_pos = random.sample(
             [
                 (i, j)
@@ -43,6 +46,7 @@ class HangarWorldMDP:
             for tpl in itertools.product([True, False], repeat=number_of_materials)
         ]
 
+        # Define the initial and terminal states
         self.initial_state = (0, 0, tuple([False] * number_of_materials))
         self.terminal_state = (
             height - 1,
@@ -50,6 +54,7 @@ class HangarWorldMDP:
             tuple([True] * number_of_materials),
         )
 
+        # Define the material states
         forbidden_states = self.bad_states + [self.initial_state, self.terminal_state]
 
         available_states = [
@@ -61,11 +66,11 @@ class HangarWorldMDP:
 
         unique_available_states = list({x[:2]: x for x in available_states}.keys())
 
-        # Sélectionner aléatoirement des états disponibles pour les matériaux
         self.material_states = [
             x[:2] for x in random.sample(unique_available_states, number_of_materials)
         ]
 
+        # Define the transition probabilities and rewards
         self.transition_probabilities = {
             (state, action, new_state): 0
             for state in self.states
@@ -91,21 +96,20 @@ class HangarWorldMDP:
                     self.rewards[(state, action, new_state)] = -1.0
                 else:
                     self.transition_probabilities[(state, action, new_state)] = 1
-                    # If the new state is the terminal state, then bonus
+                    # If the new state is the terminal state (all materials collected), then bonus
                     if new_state == self.terminal_state:
-                        self.rewards[(state, action, new_state)] = 2.0
+                        self.rewards[(state, action, new_state)] = 3.0
                     # If the new state is a new material state, then bonus
                     elif self.is_new_material_state(state, new_state):
-                        self.rewards[(state, action, new_state)] = 1.0
+                        self.rewards[(state, action, new_state)] = 2.0
                     # If the agent goes to the terminal state without all the materials, then malus
                     elif new_state[:2] == self.terminal_state[:2]:
-                        self.rewards[(state, action, new_state)] = -2.0
+                        self.rewards[(state, action, new_state)] = -1.0
                     # Default case, no bonus or malus
                     else:
                         self.rewards[(state, action, new_state)] = 0
 
     def is_new_material_state(self, state, new_state):
-        # Recup l'index du false -> true
         for i in range(len(state[2])):
             if not state[2][i] and new_state[2][i]:
                 material_pos = self.material_states[i]
@@ -160,7 +164,7 @@ class HangarWorldMDP:
         reversed_iter_list = [tuple(reversed(item)) for item in reversed(iter_list)]
         print("Ordre (M0, M1, ...):", reversed_iter_list)
 
-        cell_width = 5  # Augmente la largeur des cellules pour mieux voir plusieurs actions par position
+        cell_width = 5
         horizontal_border = "+" + ("-" * cell_width + "+") * self.width
 
         print(horizontal_border)
@@ -172,12 +176,10 @@ class HangarWorldMDP:
                 elif (i, j) in self.bad_states:
                     cell = "X".center(cell_width)
                 else:
-                    # Afficher la politique pour chaque combinaison de matériaux collectés
                     actions_for_state = [
                         policy[(i, j, collected)] for collected in reversed_iter_list
                     ]
 
-                    # Créer une représentation de la politique pour tous les états de la position
                     action_symbols = ""
                     for action in actions_for_state:
                         if action == (1, 0):
@@ -189,10 +191,7 @@ class HangarWorldMDP:
                         elif action == (0, -1):
                             action_symbols += "←"
                         else:
-                            action_symbols += (
-                                " "  # Fallback pour les actions non définies
-                            )
-                    # Afficher les symboles des actions pour chaque état possible de la position
+                            action_symbols += " "
                     cell = action_symbols.center(cell_width)
 
                 row += cell + "|"
