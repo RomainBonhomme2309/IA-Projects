@@ -142,7 +142,9 @@ class HangarWorldMDP:
         for i in range(self.height):
             row = "|"
             for j in range(self.width):
-                if (i, j) == self.terminal_state[:2]:
+                if (i, j) == self.initial_state[:2]:
+                    cell = "S".center(cell_width)
+                elif (i, j) == self.terminal_state[:2]:
                     cell = "T".center(cell_width)
                 elif any(state[0] == i and state[1] == j for state in self.bad_states):
                     cell = "X".center(cell_width)
@@ -162,7 +164,7 @@ class HangarWorldMDP:
             itertools.product([True, False], repeat=self.number_of_materials)
         )
         reversed_iter_list = [tuple(reversed(item)) for item in reversed(iter_list)]
-        print("Ordre (M0, M1, ...):", reversed_iter_list)
+        print("Order (M0, M1, ...):", reversed_iter_list)
 
         cell_width = 5
         horizontal_border = "+" + ("-" * cell_width + "+") * self.width
@@ -171,9 +173,9 @@ class HangarWorldMDP:
         for i in range(self.height):
             row = "|"
             for j in range(self.width):
-                if (i, j) == self.terminal_state:
+                if (i, j) == self.terminal_state[:2]:
                     cell = "T".center(cell_width)
-                elif (i, j) in self.bad_states:
+                elif any(state[0] == i and state[1] == j for state in self.bad_states):
                     cell = "X".center(cell_width)
                 else:
                     actions_for_state = [
@@ -181,6 +183,8 @@ class HangarWorldMDP:
                     ]
 
                     action_symbols = ""
+                    if (i, j) == self.initial_state[:2]:
+                        action_symbols += "S"
                     for action in actions_for_state:
                         if action == (1, 0):
                             action_symbols += "↓"
