@@ -42,12 +42,6 @@ class HangarWorldMDP(GridWorldMDP):
             for action in self.actions
             for new_state in self.states
         }
-        self.rewards = {
-            (state, action, new_state): 0
-            for state in self.states
-            for action in self.actions
-            for new_state in self.states
-        }
 
         for state in self.states:
             if state in self.bad_states or state == self.terminal_state:
@@ -57,17 +51,6 @@ class HangarWorldMDP(GridWorldMDP):
                 if new_state not in self.states or new_state in self.bad_states:
                     new_state = state
                 self.transition_probabilities[(state, action, new_state)] = 1
-                self.rewards[(state, action, new_state)] = self.compute_reward(
-                    state, new_state
-                )
-
-    def compute_reward(self, state, new_state):
-        if new_state == self.terminal_state:
-            return 2
-        elif new_state in self.material_states:
-            return 1
-        else:
-            return 0
 
     def get_reward(self, key):
         new_state = key[2]

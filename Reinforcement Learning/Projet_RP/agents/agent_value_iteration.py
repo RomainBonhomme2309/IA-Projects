@@ -17,7 +17,7 @@ class ValueIterationAgent:
                 prob = self.mdp.transition_probabilities.get(
                     (state, action, next_state), 0
                 )
-                reward = self.mdp.rewards.get((state, action, next_state), 0)
+                reward = self.mdp.get_reward((state, action, next_state))
                 value += prob * (reward + self.gamma * self.V[next_state])
             action_values[action] = value
 
@@ -27,6 +27,7 @@ class ValueIterationAgent:
     def train(self, max_iterations=1000):
         for i in range(max_iterations):
             delta = 0
+            self.mdp.reset()
             for state in self.mdp.states:
                 old_value = self.V[state]
                 max_value, best_action = self.get_max_action_value(state)
