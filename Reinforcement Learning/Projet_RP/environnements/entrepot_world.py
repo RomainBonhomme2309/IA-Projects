@@ -169,7 +169,7 @@ class EntrepotWorldMDP:
             itertools.product([True, False], repeat=self.number_of_unclean_areas)
         )
         reversed_iter_list = [tuple(reversed(item)) for item in reversed(iter_list)]
-        print("Order (U0, U1, ...):", reversed_iter_list)
+        print("Arrow order (U0, U1, ...):", reversed_iter_list)
 
         cell_width = 3 * self.number_of_unclean_areas
         horizontal_border = "+" + ("-" * cell_width + "+") * self.width

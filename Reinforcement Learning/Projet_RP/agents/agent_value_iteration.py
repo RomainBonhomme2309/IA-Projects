@@ -38,7 +38,7 @@ class ValueIterationAgent:
             if delta < self.theta:
                 print(f"\nConverged after {i+1} iterations")
                 break
-        print("\n")
+        print()
 
     def print_policy(self):
         self.mdp.print_policy(self.policy)
