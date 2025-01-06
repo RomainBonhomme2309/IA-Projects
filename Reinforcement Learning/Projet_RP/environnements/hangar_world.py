@@ -27,15 +27,21 @@ class HangarWorldMDP:
 
         self.actions = [UP, DOWN, LEFT, RIGHT]
 
-        self.bad_states = random.sample(
+        bad_states_pos = random.sample(
             [
-                state
-                for state in self.states
-                if not (state[0] == 0 and state[1] == 0)
-                and not (state[0] == height - 1 and state[1] == width - 1)
+                (i, j)
+                for i in range(height)
+                for j in range(width)
+                if (i, j) != (0, 0) and (i, j) != (height - 1, width - 1)
             ],
             self.number_of_holes,
         )
+
+        self.bad_states = [
+            (i, j, tpl)
+            for i, j in bad_states_pos
+            for tpl in itertools.product([True, False], repeat=number_of_materials)
+        ]
 
         self.initial_state = (0, 0, tuple([False] * number_of_materials))
         self.terminal_state = (
@@ -60,9 +66,6 @@ class HangarWorldMDP:
             x[:2] for x in random.sample(unique_available_states, number_of_materials)
         ]
 
-        print(forbidden_states)
-        print(self.material_states)
-
         self.transition_probabilities = {
             (state, action, new_state): 0
             for state in self.states
@@ -85,7 +88,7 @@ class HangarWorldMDP:
                 if new_state not in self.states or new_state in self.bad_states:
                     new_state = state
                     self.transition_probabilities[(state, action, new_state)] = 0
-                    self.rewards[(state, action, new_state)] = -0.2
+                    self.rewards[(state, action, new_state)] = -1.0
                 else:
                     self.transition_probabilities[(state, action, new_state)] = 1
                     # If the new state is the terminal state, then bonus
@@ -94,6 +97,9 @@ class HangarWorldMDP:
                     # If the new state is a new material state, then bonus
                     elif self.is_new_material_state(state, new_state):
                         self.rewards[(state, action, new_state)] = 1.0
+                    # If the agent goes to the terminal state without all the materials, then malus
+                    elif new_state[:2] == self.terminal_state[:2]:
+                        self.rewards[(state, action, new_state)] = -2.0
                     # Default case, no bonus or malus
                     else:
                         self.rewards[(state, action, new_state)] = 0
@@ -152,7 +158,7 @@ class HangarWorldMDP:
             itertools.product([True, False], repeat=self.number_of_materials)
         )
         reversed_iter_list = [tuple(reversed(item)) for item in reversed(iter_list)]
-        print("Ordre:", reversed_iter_list)
+        print("Ordre (M0, M1, ...):", reversed_iter_list)
 
         cell_width = 5  # Augmente la largeur des cellules pour mieux voir plusieurs actions par position
         horizontal_border = "+" + ("-" * cell_width + "+") * self.width
