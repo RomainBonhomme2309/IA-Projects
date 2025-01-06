@@ -46,9 +46,14 @@ class HangarWorldMDP:
 
         forbidden_states = self.bad_states + [self.initial_state, self.terminal_state]
 
-        self.material_states = random.sample(
-            list(self.states - set(forbidden_states)), number_of_materials
-        )
+        self.material_states = [
+            x[:2]
+            for x in random.sample(
+                list(self.states - set(forbidden_states)), number_of_materials
+            )
+        ]
+
+        print(self.material_states)
 
         self.transition_probabilities = {
             (state, action, new_state): 0
@@ -87,14 +92,28 @@ class HangarWorldMDP:
 
     def is_new_material_state(self, state, new_state):
         # Recup l'index du false -> true
-        # recup i j du material en question
-        # si le i j de new state correspond au i j du material c'est TRUE
-        # else FALSE
+        for i in range(len(state[2])):
+            if not state[2][i] and new_state[2][i]:
+                material_pos = self.material_states[i]
+                if new_state[:2] == material_pos:
+                    return True
+        return False
 
     def take_action(self, state, action):
-        new_state = (state[0] + action[0], state[1] + action[1])
+        new_state_pos = (state[0] + action[0], state[1] + action[1])
+        new_state = (new_state_pos[0], new_state_pos[1], state[2])
+        for i in range(len(self.material_states)):
+            if new_state_pos == self.material_states[i]:
+                new_state_materials = list(state[2])
+                new_state_materials[i] = True
+                new_state = (
+                    new_state_pos[0],
+                    new_state_pos[1],
+                    tuple(new_state_materials),
+                )
         if new_state not in self.states or new_state in self.bad_states:
             new_state = state
+
         return new_state
 
     def print_board(self):
@@ -109,10 +128,10 @@ class HangarWorldMDP:
                     cell = "T".center(cell_width)
                 elif any(state[0] == i and state[1] == j for state in self.bad_states):
                     cell = "X".center(cell_width)
-                elif any(
-                    state[0] == i and state[1] == j for state in self.material_states
-                ):
-                    cell = "M".center(cell_width)
+                elif (i, j) in self.material_states:
+                    for k in range(len(self.material_states)):
+                        if (i, j) == self.material_states[k]:
+                            cell = f"M{k}".center(cell_width)
                 else:
                     cell = ".".center(cell_width)
                 row += cell + "|"
@@ -121,6 +140,8 @@ class HangarWorldMDP:
         print()
 
     def print_policy(self, policy: dict):
+        print(list(itertools.product([True, False], repeat=self.number_of_materials)))
+
         cell_width = 5  # Augmente la largeur des cellules pour mieux voir plusieurs actions par position
         horizontal_border = "+" + ("-" * cell_width + "+") * self.width
 
