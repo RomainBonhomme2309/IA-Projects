@@ -140,7 +140,11 @@ class HangarWorldMDP:
         print()
 
     def print_policy(self, policy: dict):
-        print(list(itertools.product([True, False], repeat=self.number_of_materials)))
+        iter_list = list(
+            itertools.product([True, False], repeat=self.number_of_materials)
+        )
+        reversed_iter_list = [tuple(reversed(item)) for item in reversed(iter_list)]
+        print("Ordre:", reversed_iter_list)
 
         cell_width = 5  # Augmente la largeur des cellules pour mieux voir plusieurs actions par position
         horizontal_border = "+" + ("-" * cell_width + "+") * self.width
@@ -156,10 +160,7 @@ class HangarWorldMDP:
                 else:
                     # Afficher la politique pour chaque combinaison de matériaux collectés
                     actions_for_state = [
-                        policy[(i, j, collected)]
-                        for collected in itertools.product(
-                            [True, False], repeat=self.number_of_materials
-                        )
+                        policy[(i, j, collected)] for collected in reversed_iter_list
                     ]
 
                     # Créer une représentation de la politique pour tous les états de la position
