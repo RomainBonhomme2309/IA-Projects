@@ -46,13 +46,21 @@ class HangarWorldMDP:
 
         forbidden_states = self.bad_states + [self.initial_state, self.terminal_state]
 
-        self.material_states = [
-            x[:2]
-            for x in random.sample(
-                list(self.states - set(forbidden_states)), number_of_materials
-            )
+        available_states = [
+            x
+            for x in self.states
+            if x not in forbidden_states
+            and x[:2] not in [fs[:2] for fs in forbidden_states]
         ]
 
+        unique_available_states = list({x[:2]: x for x in available_states}.keys())
+
+        # Sélectionner aléatoirement des états disponibles pour les matériaux
+        self.material_states = [
+            x[:2] for x in random.sample(unique_available_states, number_of_materials)
+        ]
+
+        print(forbidden_states)
         print(self.material_states)
 
         self.transition_probabilities = {
