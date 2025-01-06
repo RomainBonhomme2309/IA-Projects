@@ -1,34 +1,23 @@
-import random
-
 ### Environnements
 from environnements.hangar_world import HangarWorldMDP
 from environnements.entrepot_world import EntrepotWorldMDP
 from environnements.garage_world import GarageWorldMDP
 
 ### Agents
-
-## Model-free
-# Agent pour Monte Carlo
+# Agent pour Monte Carlo (model free)
 from agents.agent_monte_carlo import MonteCarloAgent
 
-# Agent pour SARSA
-from agents.agent_sarsa import SarsaAgent
-
-# Agent pour Q-Learning
-from agents.agent_qlearning import QLearningAgent
-
-## Model-based
-#! TODO
-from agents.agent_monte_carlo_model_based import MonteCarloAgentModelBased
+# Agent pour Value Iteration (model based)
+from agents.agent_value_iteration import ValueIterationAgent
 
 if __name__ == "__main__":
-    # Création de la grille
+    # Création de Hangar
     hangar = HangarWorldMDP(4, 4, 1)
-    print("Grille initiale:")
+    print("=" * 20, "Environnement 1: HANGAR", "=" * 20)
     hangar.print_board()
 
-    # Monte Carlo
-    print("=" * 20, "Monte Carlo (model free)", "=" * 20, "\n")
+    # Monte Carlo (model free)
+    print("=" * 10, "Monte Carlo (model free)", "=" * 10, "\n")
 
     mc_agent = MonteCarloAgent(hangar, epsilon=0.3, gamma=0.9)
 
@@ -40,15 +29,15 @@ if __name__ == "__main__":
     print("Valeur des états après apprentissage Monte Carlo:")
     mc_agent.print_value_function()
 
-    # Monte Carlo (model based)
-    print("=" * 20, "Monte Carlo (model based)", "=" * 20, "\n")
+    # Value Iteration (model based)
+    print("=" * 10, "Value Iteration (model based)", "=" * 10, "\n")
 
-    mc_agent = MonteCarloAgentModelBased(hangar, epsilon=0.3, gamma=0.9)
+    vi_agent = ValueIterationAgent(hangar, gamma=0.9, theta=0.0001)
 
-    mc_agent.train(episodes=1000)
+    vi_agent.train(max_iterations=1000)
 
-    print("Politique après apprentissage Monte Carlo:")
-    mc_agent.print_policy()
+    print("Politique après apprentissage Value Iteration:")
+    vi_agent.print_policy()
 
-    print("Valeur des états après apprentissage Monte Carlo:")
-    mc_agent.print_value_function()
+    print("Valeur des états après apprentissage Value Iteration:")
+    vi_agent.print_value_function()
