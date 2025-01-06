@@ -39,7 +39,7 @@ class EntrepotWorldMDP:
                 (i, j)
                 for i in range(height)
                 for j in range(width)
-                if (i, j) != (0, 0) and (i, j) != (height - 1, width - 1)
+                if (i, j) != (0, 0) and (i, j) != (0, width - 1)
             ],
             self.number_of_holes,
         )
@@ -53,7 +53,7 @@ class EntrepotWorldMDP:
         # Define the initial and terminal states
         self.initial_state = (0, 0, tuple([False] * number_of_unclean_areas))
         self.terminal_state = (
-            height - 1,
+            0,
             width - 1,
             tuple([True] * number_of_unclean_areas),
         )
@@ -178,9 +178,7 @@ class EntrepotWorldMDP:
         for i in range(self.height):
             row = "|"
             for j in range(self.width):
-                if (i, j) == self.terminal_state[:2]:
-                    cell = "T".center(cell_width)
-                elif any(state[0] == i and state[1] == j for state in self.bad_states):
+                if any(state[0] == i and state[1] == j for state in self.bad_states):
                     cell = "X".center(cell_width)
                 else:
                     actions_for_state = [
@@ -190,6 +188,8 @@ class EntrepotWorldMDP:
                     action_symbols = ""
                     if (i, j) == self.initial_state[:2]:
                         action_symbols += "S"
+                    if (i, j) == self.terminal_state[:2]:
+                        action_symbols += "T"
                     for action in actions_for_state:
                         if action == (1, 0):
                             action_symbols += "↓"

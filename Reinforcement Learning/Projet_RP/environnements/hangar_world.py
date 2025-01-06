@@ -173,9 +173,7 @@ class HangarWorldMDP:
         for i in range(self.height):
             row = "|"
             for j in range(self.width):
-                if (i, j) == self.terminal_state[:2]:
-                    cell = "T".center(cell_width)
-                elif any(state[0] == i and state[1] == j for state in self.bad_states):
+                if any(state[0] == i and state[1] == j for state in self.bad_states):
                     cell = "X".center(cell_width)
                 else:
                     actions_for_state = [
@@ -185,6 +183,8 @@ class HangarWorldMDP:
                     action_symbols = ""
                     if (i, j) == self.initial_state[:2]:
                         action_symbols += "S"
+                    if (i, j) == self.terminal_state[:2]:
+                        action_symbols += "T"
                     for action in actions_for_state:
                         if action == (1, 0):
                             action_symbols += "↓"
