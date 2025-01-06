@@ -175,6 +175,7 @@ class EntrepotWorldMDP:
         )
         reversed_iter_list = [tuple(reversed(item)) for item in reversed(iter_list)]
         print("Arrow order (U0, U1, ...):", reversed_iter_list)
+        print("Initial state:", reversed_iter_list[0])
 
         cell_width = 4 * self.number_of_uncleaned_areas
         horizontal_border = "+" + ("-" * cell_width + "+") * self.width
