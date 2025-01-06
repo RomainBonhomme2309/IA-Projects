@@ -101,13 +101,13 @@ class EntrepotWorldMDP:
                     self.rewards[(state, action, new_state)] = -1.0
                 else:
                     self.transition_probabilities[(state, action, new_state)] = 1
-                    # If the new state is the terminal state (all unclean_areas collected), then bonus
+                    # If the new state is the terminal state (all unclean areas cleaned), then bonus
                     if new_state == self.terminal_state:
                         self.rewards[(state, action, new_state)] = 3.0
-                    # If the new state is a new unclean_area state, then bonus
+                    # If the new state is a new unclean area state, then bonus
                     elif self.is_new_unclean_area_state(state, new_state):
                         self.rewards[(state, action, new_state)] = 2.0
-                    # If the agent goes to the terminal state without all the unclean_areas, then malus
+                    # If the agent goes to the terminal state without all the unclean_areas cleaned, then malus
                     elif new_state[:2] == self.terminal_state[:2]:
                         self.rewards[(state, action, new_state)] = -1.0
                     # Default case, no bonus or malus
@@ -147,7 +147,9 @@ class EntrepotWorldMDP:
         for i in range(self.height):
             row = "|"
             for j in range(self.width):
-                if (i, j) == self.terminal_state[:2]:
+                if (i, j) == self.initial_state[:2]:
+                    cell = "S".center(cell_width)
+                elif (i, j) == self.terminal_state[:2]:
                     cell = "T".center(cell_width)
                 elif any(state[0] == i and state[1] == j for state in self.bad_states):
                     cell = "X".center(cell_width)
@@ -169,16 +171,16 @@ class EntrepotWorldMDP:
         reversed_iter_list = [tuple(reversed(item)) for item in reversed(iter_list)]
         print("Order (U0, U1, ...):", reversed_iter_list)
 
-        cell_width = 5
+        cell_width = 3 * self.number_of_unclean_areas
         horizontal_border = "+" + ("-" * cell_width + "+") * self.width
 
         print(horizontal_border)
         for i in range(self.height):
             row = "|"
             for j in range(self.width):
-                if (i, j) == self.terminal_state:
+                if (i, j) == self.terminal_state[:2]:
                     cell = "T".center(cell_width)
-                elif (i, j) in self.bad_states:
+                elif any(state[0] == i and state[1] == j for state in self.bad_states):
                     cell = "X".center(cell_width)
                 else:
                     actions_for_state = [
@@ -186,6 +188,8 @@ class EntrepotWorldMDP:
                     ]
 
                     action_symbols = ""
+                    if (i, j) == self.initial_state[:2]:
+                        action_symbols += "S"
                     for action in actions_for_state:
                         if action == (1, 0):
                             action_symbols += "↓"

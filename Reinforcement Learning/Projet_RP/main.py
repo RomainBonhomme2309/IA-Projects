@@ -24,7 +24,7 @@ def run_task(
     env.print_board()
 
     # Model Free
-    print("=" * 10, f"{name_model_free} (model free)", "=" * 10, "\n")
+    print("." * 10, f"{name_model_free} (model free)", "." * 10, "\n")
 
     agent_model_free.train(episodes=episodes)
 
@@ -32,7 +32,7 @@ def run_task(
     agent_model_free.print_policy()
 
     # Model Based
-    print("=" * 10, f"{name_model_based} (model based)", "=" * 10, "\n")
+    print("." * 10, f"{name_model_based} (model based)", "." * 10, "\n")
 
     agent_model_based.train(max_iterations=max_iterations)
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
         max_iterations=5000,
     )
 
-    """ # Environnement 2: Entrepot
+    # Environnement 2: Entrepot
     print("=" * 20, "Environnement 2: ENTREPOT", "=" * 20)
     env = EntrepotWorldMDP(4, 4, 3, 3)
     agent_model_free = MonteCarloAgent(env, epsilon=0.3, gamma=0.99)
@@ -69,4 +69,4 @@ if __name__ == "__main__":
         "Value Iteration",
         episodes=1000,
         max_iterations=5000,
-    ) """
+    )

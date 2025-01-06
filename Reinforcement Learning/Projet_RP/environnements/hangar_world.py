@@ -166,7 +166,7 @@ class HangarWorldMDP:
         reversed_iter_list = [tuple(reversed(item)) for item in reversed(iter_list)]
         print("Order (M0, M1, ...):", reversed_iter_list)
 
-        cell_width = 5
+        cell_width = 3 * self.number_of_materials
         horizontal_border = "+" + ("-" * cell_width + "+") * self.width
 
         print(horizontal_border)
