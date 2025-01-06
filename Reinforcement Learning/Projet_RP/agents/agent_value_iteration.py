@@ -7,7 +7,7 @@ class ValueIterationAgent:
         self.policy = {state: self.mdp.actions[0] for state in self.mdp.states}
 
     def get_max_action_value(self, state):
-        if state == self.mdp.terminal_state or state in self.mdp.bad_states:
+        if state in self.mdp.terminal_states or state in self.mdp.bad_states:
             return 0, self.mdp.actions[0]
 
         action_values = {}

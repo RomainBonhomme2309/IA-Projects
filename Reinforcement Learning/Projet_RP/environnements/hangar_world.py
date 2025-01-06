@@ -48,14 +48,16 @@ class HangarWorldMDP:
 
         # Define the initial and terminal states
         self.initial_state = (0, 0, tuple([False] * number_of_materials))
-        self.terminal_state = (
-            height - 1,
-            width - 1,
-            tuple([True] * number_of_materials),
-        )
+        self.terminal_states = [
+            (
+                height - 1,
+                width - 1,
+                tuple([True] * number_of_materials),
+            )
+        ]
 
         # Define the material states
-        forbidden_states = self.bad_states + [self.initial_state, self.terminal_state]
+        forbidden_states = self.bad_states + [self.initial_state] + self.terminal_states
 
         available_states = [
             x
@@ -85,7 +87,7 @@ class HangarWorldMDP:
         }  # a dictionary of type "{(s,a,s') : reward of the transition(s,a,s')}"
 
         for state in self.states:
-            if state in self.bad_states or state == self.terminal_state:
+            if state in self.bad_states or state in self.terminal_states:
                 continue
             for action in self.actions:
                 new_state = self.take_action(state, action)
@@ -97,13 +99,13 @@ class HangarWorldMDP:
                 else:
                     self.transition_probabilities[(state, action, new_state)] = 1
                     # If the new state is the terminal state (all materials collected), then bonus
-                    if new_state == self.terminal_state:
+                    if new_state in self.terminal_states:
                         self.rewards[(state, action, new_state)] = 3.0
                     # If the new state is a new material state, then bonus
                     elif self.is_new_material_state(state, new_state):
                         self.rewards[(state, action, new_state)] = 2.0
                     # If the agent goes to the terminal state without all the materials, then malus
-                    elif new_state[:2] == self.terminal_state[:2]:
+                    elif new_state[:2] == [x[:2] for x in self.terminal_states]:
                         self.rewards[(state, action, new_state)] = -1.0
                     # Default case, no bonus or malus
                     else:
@@ -144,7 +146,7 @@ class HangarWorldMDP:
             for j in range(self.width):
                 if (i, j) == self.initial_state[:2]:
                     cell = "S".center(cell_width)
-                elif (i, j) == self.terminal_state[:2]:
+                elif (i, j) in [x[:2] for x in self.terminal_states]:
                     cell = "T".center(cell_width)
                 elif any(state[0] == i and state[1] == j for state in self.bad_states):
                     cell = "X".center(cell_width)
@@ -152,6 +154,7 @@ class HangarWorldMDP:
                     for k in range(len(self.material_states)):
                         if (i, j) == self.material_states[k]:
                             cell = f"M{k}".center(cell_width)
+                            break
                 else:
                     cell = ".".center(cell_width)
                 row += cell + "|"
@@ -166,7 +169,7 @@ class HangarWorldMDP:
         reversed_iter_list = [tuple(reversed(item)) for item in reversed(iter_list)]
         print("Arrow order (M0, M1, ...):", reversed_iter_list)
 
-        cell_width = 3 * self.number_of_materials
+        cell_width = 4 * self.number_of_materials
         horizontal_border = "+" + ("-" * cell_width + "+") * self.width
 
         print(horizontal_border)
@@ -183,8 +186,13 @@ class HangarWorldMDP:
                     action_symbols = ""
                     if (i, j) == self.initial_state[:2]:
                         action_symbols += "S"
-                    if (i, j) == self.terminal_state[:2]:
+                    if (i, j) in [x[:2] for x in self.terminal_states]:
                         action_symbols += "T"
+                    if (i, j) in self.material_states:
+                        for k in range(len(self.material_states)):
+                            if (i, j) == self.material_states[k]:
+                                action_symbols += f"M{k}"
+                                break
                     for action in actions_for_state:
                         if action == (1, 0):
                             action_symbols += "↓"

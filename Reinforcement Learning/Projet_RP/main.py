@@ -70,3 +70,18 @@ if __name__ == "__main__":
         episodes=1000,
         max_iterations=5000,
     )
+
+    # Environnement 3: Garage
+    print("=" * 20, "Environnement 3: GARAGE", "=" * 20)
+    env = GarageWorldMDP(4, 4, 3, 2)
+    agent_model_free = MonteCarloAgent(env, epsilon=0.3, gamma=0.99)
+    agent_model_based = ValueIterationAgent(env, gamma=0.9, theta=0.0001)
+    run_task(
+        env,
+        agent_model_free,
+        "Monte Carlo",
+        agent_model_based,
+        "Value Iteration",
+        episodes=1000,
+        max_iterations=5000,
+    )

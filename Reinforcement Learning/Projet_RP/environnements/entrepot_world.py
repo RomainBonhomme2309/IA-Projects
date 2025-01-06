@@ -54,14 +54,16 @@ class EntrepotWorldMDP:
 
         # Define the initial and terminal states
         self.initial_state = (0, 0, tuple([False] * number_of_uncleaned_areas))
-        self.terminal_state = (
-            0,
-            width - 1,
-            tuple([True] * number_of_uncleaned_areas),
-        )
+        self.terminal_states = [
+            (
+                0,
+                width - 1,
+                tuple([True] * number_of_uncleaned_areas),
+            )
+        ]
 
         # Define the uncleaned_area states
-        forbidden_states = self.bad_states + [self.initial_state, self.terminal_state]
+        forbidden_states = self.bad_states + [self.initial_state] + self.terminal_states
 
         available_states = [
             x
@@ -92,7 +94,7 @@ class EntrepotWorldMDP:
         }  # a dictionary of type "{(s,a,s') : reward of the transition(s,a,s')}"
 
         for state in self.states:
-            if state in self.bad_states or state == self.terminal_state:
+            if state in self.bad_states or state in self.terminal_states:
                 continue
             for action in self.actions:
                 new_state = self.take_action(state, action)
@@ -104,13 +106,13 @@ class EntrepotWorldMDP:
                 else:
                     self.transition_probabilities[(state, action, new_state)] = 1
                     # If the new state is the terminal state (all uncleaned areas cleaned), then bonus
-                    if new_state == self.terminal_state:
+                    if new_state in self.terminal_states:
                         self.rewards[(state, action, new_state)] = 3.0
                     # If the new state is a new uncleaned area state, then bonus
                     elif self.is_new_uncleaned_area_state(state, new_state):
                         self.rewards[(state, action, new_state)] = 2.0
                     # If the agent goes to the terminal state without all the uncleaned_areas cleaned, then malus
-                    elif new_state[:2] == self.terminal_state[:2]:
+                    elif new_state[:2] in [x[:2] for x in self.terminal_states]:
                         self.rewards[(state, action, new_state)] = -1.0
                     # Default case, no bonus or malus
                     else:
@@ -151,7 +153,7 @@ class EntrepotWorldMDP:
             for j in range(self.width):
                 if (i, j) == self.initial_state[:2]:
                     cell = "S".center(cell_width)
-                elif (i, j) == self.terminal_state[:2]:
+                elif (i, j) in [x[:2] for x in self.terminal_states]:
                     cell = "T".center(cell_width)
                 elif any(state[0] == i and state[1] == j for state in self.bad_states):
                     cell = "X".center(cell_width)
@@ -159,6 +161,7 @@ class EntrepotWorldMDP:
                     for k in range(len(self.uncleaned_area_states)):
                         if (i, j) == self.uncleaned_area_states[k]:
                             cell = f"U{k}".center(cell_width)
+                            break
                 else:
                     cell = ".".center(cell_width)
                 row += cell + "|"
@@ -173,7 +176,7 @@ class EntrepotWorldMDP:
         reversed_iter_list = [tuple(reversed(item)) for item in reversed(iter_list)]
         print("Arrow order (U0, U1, ...):", reversed_iter_list)
 
-        cell_width = 3 * self.number_of_uncleaned_areas
+        cell_width = 4 * self.number_of_uncleaned_areas
         horizontal_border = "+" + ("-" * cell_width + "+") * self.width
 
         print(horizontal_border)
@@ -190,8 +193,13 @@ class EntrepotWorldMDP:
                     action_symbols = ""
                     if (i, j) == self.initial_state[:2]:
                         action_symbols += "S"
-                    if (i, j) == self.terminal_state[:2]:
+                    if (i, j) in [x[:2] for x in self.terminal_states]:
                         action_symbols += "T"
+                    if (i, j) in self.uncleaned_area_states:
+                        for k in range(len(self.uncleaned_area_states)):
+                            if (i, j) == self.uncleaned_area_states[k]:
+                                action_symbols += f"U{k}"
+                                break
                     for action in actions_for_state:
                         if action == (1, 0):
                             action_symbols += "↓"
