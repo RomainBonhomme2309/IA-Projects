@@ -18,7 +18,7 @@ def run_task(
     agent_model_based,
     name_model_based,
     episodes=1000,
-    max_iterations=5000,
+    max_iterations=1000,
 ):
     # Environment
     env.print_board()
@@ -53,7 +53,7 @@ if __name__ == "__main__":
         agent_model_based,
         "Value Iteration",
         episodes=1000,
-        max_iterations=5000,
+        max_iterations=1000,
     )
 
     # Environnement 2: Entrepot
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         agent_model_based,
         "Value Iteration",
         episodes=1000,
-        max_iterations=5000,
+        max_iterations=1000,
     )
 
     # Environnement 3: Garage
@@ -83,5 +83,5 @@ if __name__ == "__main__":
         agent_model_based,
         "Value Iteration",
         episodes=1000,
-        max_iterations=5000,
+        max_iterations=1000,
     )
