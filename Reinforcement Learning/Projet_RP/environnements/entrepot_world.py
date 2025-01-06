@@ -2,10 +2,13 @@ import random
 
 
 class EntrepotWorldMDP:
-    def __init__(self, height: int, width: int, number_of_holes: int):
+    def __init__(
+        self, height: int, width: int, number_of_holes: int, number_of_dirty_states: int
+    ):
         self.height = height
         self.width = width
         self.number_of_holes = number_of_holes
+        self.number_of_dirty_states = number_of_dirty_states
 
         self.states = set((i, j) for i in range(height) for j in range(width))
 
@@ -17,11 +20,17 @@ class EntrepotWorldMDP:
         self.actions = [UP, DOWN, LEFT, RIGHT]
 
         self.bad_states = random.sample(
-            list(self.states - {(0, 0), (height - 1, width - 1)}), self.number_of_holes
+            list(self.states - {(0, 0), (0, width - 1)}), self.number_of_holes
         )
 
         self.initial_state = (0, 0)
-        self.terminal_state = (height - 1, width - 1)
+        self.terminal_state = (0, width - 1)
+
+        forbidden_states = self.bad_states + [self.initial_state, self.terminal_state]
+
+        self.dirty_states = random.sample(
+            list(self.states - set(forbidden_states)), number_of_dirty_states
+        )
 
         self.transition_probabilities = {
             (state, action, new_state): 0
@@ -61,6 +70,8 @@ class EntrepotWorldMDP:
                     cell = "T".center(cell_width)
                 elif (i, j) in self.bad_states:
                     cell = "X".center(cell_width)
+                elif (i, j) in self.dirty_states:
+                    cell = "D".center(cell_width)
                 else:
                     cell = ".".center(cell_width)
                 row += cell + "|"
