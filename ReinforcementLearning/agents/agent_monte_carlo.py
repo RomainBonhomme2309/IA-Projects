@@ -18,7 +18,7 @@ class MonteCarloAgent:
         episode = []
 
         count = 0
-        while state != self.mdp.terminal_state and count < max_steps:
+        while state not in self.mdp.terminal_states and count < max_steps:
             action = self.select_action(state)
             new_state = self.mdp.take_action(state, action)
             reward = self.mdp.rewards.get((state, action, new_state), 0)

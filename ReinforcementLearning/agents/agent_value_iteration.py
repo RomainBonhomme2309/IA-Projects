@@ -7,7 +7,7 @@ class ValueIterationAgent:
         self.policy = {state: self.mdp.actions[0] for state in self.mdp.states}
 
     def get_max_action_value(self, state):
-        if state == self.mdp.terminal_state or state in self.mdp.bad_states:
+        if state in self.mdp.terminal_states or state in self.mdp.bad_states:
             return 0, self.mdp.actions[0]
 
         action_values = {}
@@ -17,7 +17,7 @@ class ValueIterationAgent:
                 prob = self.mdp.transition_probabilities.get(
                     (state, action, next_state), 0
                 )
-                reward = self.mdp.get_reward((state, action, next_state))
+                reward = self.mdp.rewards.get((state, action, next_state), 0)
                 value += prob * (reward + self.gamma * self.V[next_state])
             action_values[action] = value
 
@@ -27,7 +27,6 @@ class ValueIterationAgent:
     def train(self, max_iterations=1000):
         for i in range(max_iterations):
             delta = 0
-            self.mdp.reset()
             for state in self.mdp.states:
                 old_value = self.V[state]
                 max_value, best_action = self.get_max_action_value(state)
@@ -39,7 +38,7 @@ class ValueIterationAgent:
             if delta < self.theta:
                 print(f"\nConverged after {i+1} iterations")
                 break
-        print("\n")
+        print()
 
     def print_policy(self):
         self.mdp.print_policy(self.policy)
