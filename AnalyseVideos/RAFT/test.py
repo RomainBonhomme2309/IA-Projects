@@ -73,38 +73,98 @@ def viz(img, flo, flow_gt):
     cv2.waitKey()
 
 
-def compute_metrics(flow_estimated, flow_gt):
+def compute_metrics(img1, img2, flow_estimated, flow_gt):
     """
-    Calculate aEPE, aAE, and MSE for two optical flow images.
+    Compute the average End Point Error (aEPE),
+    average Angular Error (aAE), and
+    Mean Square Error (MSE) between the original and compensated images.
 
-    Args:
-        flow_estimated: Estimated optical flow (tensor of shape (2, H, W)).
-        flow_gt: Ground truth optical flow (tensor of shape (2, H, W)).
+    Parameters:
+        img1 (torch.Tensor): The first image (1, 3, H, W).
+        img2 (torch.Tensor): The second image (1, 3, H, W).
+        flow_estimated (torch.Tensor): Estimated optical flow (2, H, W).
+        flow_gt (torch.Tensor): Ground-truth optical flow (2, H, W).
 
     Returns:
-        aEPE, aAE, MSE (float): Calculated metric values.
+        tuple: (aEPE, aAE, mse)
+            - aEPE: Average End Point Error.
+            - aAE: Average Angular Error.
+            - mse: Mean Square Error between img1 and the compensated img2.
     """
-    # Vérification que les dimensions sont compatibles
-    if flow_estimated.shape != flow_gt.shape:
-        raise ValueError("flow_estimated and flow_gt must have the same shape")
+    # Remove batch dimension
+    img1 = img1[0]  # Shape: (3, H, W)
+    img2 = img2[0]  # Shape: (3, H, W)
 
-    # Calcul de l'erreur de point de fin moyen (aEPE)
-    epe = torch.norm(
-        flow_estimated - flow_gt, dim=0
-    )  # Norme Euclidienne sur la première dimension
-    aEPE = epe.mean().item()  # Moyenne des erreurs
+    # Image dimensions
+    _, H, W = img1.shape
 
-    # Calcul de l'erreur absolue moyenne (aAE)
-    aAE = (
-        torch.abs(flow_estimated - flow_gt).mean().item()
-    )  # Moyenne des erreurs absolues
+    # Meshgrid for pixel coordinates
+    x = torch.arange(W, device=flow_estimated.device).view(1, -1).expand(H, W)
+    y = torch.arange(H, device=flow_estimated.device).view(-1, 1).expand(H, W)
 
-    # Calcul de l'erreur quadratique moyenne (MSE)
-    mse = torch.mean(
-        (flow_estimated - flow_gt) ** 2
-    ).item()  # Moyenne des carrés des erreurs
+    x_comp = x + flow_estimated[0]  # Add horizontal flow
+    y_comp = y + flow_estimated[1]  # Add vertical flow
+
+    # Interpolate img2 to create the compensated image for each channel
+    compensated_img = torch.zeros_like(img1)
+    for c in range(3):
+        compensated_img[c] = bilinear_interpolation(img2[c], x_comp, y_comp)
+
+    # Mean Square Error (MSE)
+    mse = torch.mean((img1 - compensated_img) ** 2).item()
+
+    # End Point Error (EPE)
+    epe = torch.sqrt(
+        (flow_estimated[0] - flow_gt[0]) ** 2 + (flow_estimated[1] - flow_gt[1]) ** 2
+    )
+    aEPE = torch.mean(epe).item()
+
+    # Angular Error (AE)
+    dot_product = flow_estimated[0] * flow_gt[0] + flow_estimated[1] * flow_gt[1]
+    norm_est = torch.sqrt(flow_estimated[0] ** 2 + flow_estimated[1] ** 2)
+    norm_gt = torch.sqrt(flow_gt[0] ** 2 + flow_gt[1] ** 2)
+    cos_theta = torch.clamp(dot_product / (norm_est * norm_gt + 1e-6), -1.0, 1.0)
+    angular_error = torch.acos(cos_theta)
+    aAE = torch.mean(angular_error).item()
 
     return aEPE, aAE, mse
+
+
+def bilinear_interpolation(img, x, y):
+    """
+    Perform bilinear interpolation for image sampling.
+
+    Parameters:
+        img (torch.Tensor): Input image (H, W).
+        x (torch.Tensor): X-coordinates for sampling.
+        y (torch.Tensor): Y-coordinates for sampling.
+
+    Returns:
+        torch.Tensor: Interpolated image.
+    """
+    H, W = img.shape
+
+    x0 = torch.floor(x).long()
+    x1 = x0 + 1
+    y0 = torch.floor(y).long()
+    y1 = y0 + 1
+
+    x0 = torch.clamp(x0, 0, W - 1)
+    x1 = torch.clamp(x1, 0, W - 1)
+    y0 = torch.clamp(y0, 0, H - 1)
+    y1 = torch.clamp(y1, 0, H - 1)
+
+    Ia = img[y0, x0]
+    Ib = img[y1, x0]
+    Ic = img[y0, x1]
+    Id = img[y1, x1]
+
+    wa = (x1 - x) * (y1 - y)
+    wb = (x1 - x) * (y - y0)
+    wc = (x - x0) * (y1 - y)
+    wd = (x - x0) * (y - y0)
+
+    return wa * Ia + wb * Ib + wc * Ic + wd * Id
 
 
 def demo(args):
@@ -142,7 +202,7 @@ def demo(args):
 
             flow_up = flow_up.squeeze()
 
-            aEPE, aAE, MSE = compute_metrics(flow_up, flow_gt)
+            aEPE, aAE, MSE = compute_metrics(image1, image2, flow_up, flow_gt)
             aEPEs.append(aEPE)
             aAEs.append(aAE)
             MSEs.append(MSE)
@@ -152,10 +212,27 @@ def demo(args):
     print("MSE:", np.mean(MSEs))
 
     # Ploting
-    plt.plot(aEPEs, label="aEPE")
-    plt.plot(aAEs, label="aAE")
-    plt.plot(MSEs, label="MSE")
+    plt.figure(figsize=(15, 5))
+
+    # Plot aEPE
+    plt.subplot(1, 3, 1)
+    plt.plot(aEPEs, label="aEPE", color="b")
     plt.legend()
+    plt.title("Average End Point Error")
+
+    # Plot aAE
+    plt.subplot(1, 3, 2)
+    plt.plot(aAEs, label="aAE", color="g")
+    plt.legend()
+    plt.title("Average Angular Error")
+
+    # Plot MSE
+    plt.subplot(1, 3, 3)
+    plt.plot(MSEs, label="MSE", color="r")
+    plt.legend()
+    plt.title("Mean Square Error")
+
+    plt.tight_layout()
     plt.show()
 
 
