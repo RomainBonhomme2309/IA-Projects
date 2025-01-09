@@ -137,7 +137,8 @@ def demo(args):
             image1, image2 = padder.pad(image1, image2)
 
             flow_low, flow_up = model(image1, image2, iters=20, test_mode=True)
-            viz(image1, flow_up, flow_gt)
+            if idx == len(images) // 2:
+                viz(image1, flow_up, flow_gt)
 
             flow_up = flow_up.squeeze()
 
