@@ -12,6 +12,20 @@ class ResNetClassifier(nn.Module):
         return self.base_model(x)
 
 
+class EfficientNetClassifier(nn.Module):
+    def __init__(self, num_classes=9):
+        super(EfficientNetClassifier, self).__init__()
+
+        self.base_model = models.efficientnet_b0(pretrained=True)
+
+        self.base_model.classifier[1] = nn.Linear(
+            self.base_model.classifier[1].in_features, num_classes
+        )
+    
+    def forward(self, x):
+        return self.base_model(x)
+
+
 class UNetClassifier(nn.Module):
     def __init__(self, in_channels=3, num_classes=9):
         super(UNetClassifier, self).__init__()
@@ -84,6 +98,9 @@ class UNetClassifier(nn.Module):
 if __name__ == "__main__":
     ResNet = ResNetClassifier(num_classes=9)
     print(ResNet)
+    
+    EffNet = EfficientNetClassifier(num_classes=9)
+    print(EffNet)
 
     UNet = UNetClassifier(in_channels=3, num_classes=9)
     print(UNet)
