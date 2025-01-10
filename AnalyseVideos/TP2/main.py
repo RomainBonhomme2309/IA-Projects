@@ -1,5 +1,6 @@
 import os
 import frame_extractor
+import dataset
 
 
 def extract_png_frames(video_directory):
@@ -22,4 +23,5 @@ def extract_png_frames(video_directory):
 
 
 if __name__ == "__main__":
-    extract_png_frames(os.path.join("datasets", "GITW_light"))
+    # extract_png_frames(os.path.join("datasets", "GITW_light"))
+    dataset.create_dataset("datasets", train=True)

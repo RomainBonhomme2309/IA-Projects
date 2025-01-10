@@ -48,7 +48,7 @@ def extract_frames(video_path):
         frame_count += 1
 
     cap.release()
-    print(f"\nExtracted {frame_count} frames from '{video_name}'.")
+    print(f"\nExtracted and cropped {frame_count} frames from '{video_name}'.")
 
 
 def crop_png_with_saliency_map(png, saliency_map):
