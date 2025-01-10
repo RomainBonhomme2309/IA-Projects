@@ -18,6 +18,7 @@ def extract_png_frames(video_directory):
                 video_file = os.path.join(root, file_name)
                 print(f"Processing: {video_file} ({count}/{total})")
                 frame_extractor.extract_frames(video_file)
+                count += 1
 
 
 if __name__ == "__main__":
