@@ -27,7 +27,24 @@ class ImageDataset(Dataset):
         if self.transform:
             image = self.transform(image)
 
+        label = match_label_to_index(label)
+
         return image, label
+
+def match_label_to_index(label):
+    labels = {
+        "Bowl": 0,
+        "CanOfCocaCola": 1,
+        "Jam": 2,
+        "MilkBottle": 3,
+        "Mug": 4,
+        "OilBottle": 5,
+        "Rice": 6,
+        "Sugar": 7,
+        "VinegarBottle": 8
+    }
+
+    return labels[label]
 
 def create_dataset(root_dir, train=True):
     if train:
@@ -52,23 +69,3 @@ def create_dataset(root_dir, train=True):
                                 dataset.append((image_path, class_name))
 
     return dataset
-
-root_directory = "/home/rbonhomme1/Documents/IA-Projects/AnalyseVideos/TP2/datasets/GITW_light"
-train_dataset_list = create_dataset(root_directory, train=True)
-test_dataset_list = create_dataset(root_directory, train=False)
-
-transform = transforms.Compose([
-    transforms.ToTensor(),
-    # transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-])
-
-train_dataset = ImageDataset(train_dataset_list, transform=transform)
-test_dataset = ImageDataset(test_dataset_list, transform=transform)
-
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
-
-for batch in train_loader:
-    images, labels = batch
-    print(images.shape, labels)
-    break
