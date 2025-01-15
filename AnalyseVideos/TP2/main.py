@@ -9,6 +9,8 @@ import torchvision.transforms as transforms
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 import torch.optim as optim
+import matplotlib.pyplot as plt
+from codecarbon import OfflineEmissionsTracker
 
 def extract_png_frames(video_directory):
     total = 0
@@ -27,6 +29,28 @@ def extract_png_frames(video_directory):
                 print(f"Processing: {video_file} ({count}/{total})")
                 frame_extractor.extract_frames(video_file)
                 count += 1
+
+def plot_results(train_loss, val_loss, train_acc, val_acc, model_name):
+    plt.figure(figsize=(10, 6))
+    plt.subplot(1, 2, 1)
+    plt.plot(train_loss, label=r"Training Loss")
+    plt.plot(val_loss, label=r"Validation Loss")
+    plt.xlabel(r"Epochs")
+    plt.ylabel(r"Loss")
+    plt.legend()
+
+    plt.subplot(1, 2, 2)
+    plt.plot(train_acc, label=r"Training Accuracy")
+    plt.plot(val_acc, label=r"Validation Accuracy")
+    plt.xlabel(r"Epochs")
+    plt.ylabel(r"Accuracy")
+    plt.legend()
+
+    plt.suptitle(rf"Training and Validation Results for {model_name}")
+
+    plt.savefig(f"results_{model_name}.pdf")
+
+    plt.show()
 
 if __name__ == "__main__":
     ### Uncomment the following line to extract frames from videos (this is a long process)
@@ -48,24 +72,40 @@ if __name__ == "__main__":
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
-    model = models.ResNetClassifier(num_classes=9)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = models.ResNetClassifier(num_classes=9).to(device)
+    models_list = [(models.ResNetClassifier(num_classes=9).to(device), "ResNet18"), (models.EfficientNetClassifier(num_classes=9).to(device), "EfficientNet")]
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    num_epochs = 20
 
-    num_epochs = 10
-    best_accuracy = 0.0
+    for model, model_name in models_list:
+        tracker = OfflineEmissionsTracker(country_iso_code="FRA", region="Nouvelle-Aquitaine", output_dir=f"carbon_logs_{model_name}")
+        tracker.start()
 
-    for epoch in range(num_epochs):
-        print(f"Epoch {epoch+1}/{num_epochs}")
-        train_loss, train_accuracy = train.train_one_epoch(model, train_loader, criterion, optimizer, device)
-        val_loss, val_accuracy = train.evaluate(model, test_loader, criterion, device)
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
+        best_accuracy = 0.0
 
-        if val_accuracy > best_accuracy:
-            best_accuracy = val_accuracy
-            torch.save(model.state_dict(), "best_model.pth")
-            print("Model saved as 'best_model.pth'!")
+        train_losses = []
+        val_losses = []
+        train_acc = []
+        val_acc = []
 
-    print("Training complete!")
+        for epoch in range(num_epochs):
+            print(f"Epoch {epoch+1}/{num_epochs}")
+            train_loss, train_accuracy = train.train_one_epoch(model, train_loader, criterion, optimizer, device)
+            val_loss, val_accuracy = train.evaluate(model, test_loader, criterion, device)
+            train_losses.append(train_loss)
+            val_losses.append(val_loss)
+            train_acc.append(train_accuracy)
+            val_acc.append(val_accuracy)
+
+            if val_accuracy > best_accuracy:
+                best_accuracy = val_accuracy
+                torch.save(model.state_dict(), f"best_model_{model_name}.pth")
+                print(f"Model saved as 'best_model_{model_name}.pth'!")
+
+        tracker.stop()
+
+        plot_results(train_losses, val_losses, train_acc, val_acc, model_name)      
+
+        print(f"Training complete for model {model_name}!")
