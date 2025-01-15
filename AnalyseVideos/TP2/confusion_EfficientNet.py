@@ -28,7 +28,7 @@ transform = transforms.Compose([
 ])
 
 test_dataset = dataset.ImageDataset(test_dataset_list, transform=transform)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -36,7 +36,6 @@ model = models.EfficientNetClassifier(num_classes=9).to(device)
 model.load_state_dict(torch.load("best_model_EfficientNet.pth", map_location=device))
 model.eval()
 
-# Gather predictions and true labels
 all_preds = []
 all_labels = []
 
@@ -51,10 +50,7 @@ with torch.no_grad():
 
 cm = confusion_matrix(all_labels, all_preds)
 disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels_list)
-
-plt.figure(figsize=(12, 12))
 disp.plot(cmap=plt.cm.Blues)
 
 plt.title("Confusion Matrix EfficientNet")
-plt.savefig("confusion_matrix_EfficientNet.pdf")
 plt.show()

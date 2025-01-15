@@ -69,11 +69,11 @@ if __name__ == "__main__":
     train_dataset = dataset.ImageDataset(train_dataset_list, transform=transform)
     test_dataset = dataset.ImageDataset(test_dataset_list, transform=transform)
 
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    models_list = [(models.ResNetClassifier(num_classes=9).to(device), "ResNet18"), (models.EfficientNetClassifier(num_classes=9).to(device), "EfficientNet")]
+    models_list = [(models.EfficientNetClassifier(num_classes=9).to(device), "EfficientNet")]
 
     criterion = nn.CrossEntropyLoss()
     num_epochs = 20
