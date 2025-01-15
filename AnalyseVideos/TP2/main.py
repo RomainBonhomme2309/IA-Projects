@@ -6,8 +6,7 @@ import train
 import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
-from torch.utils.data import Dataset, DataLoader
-from PIL import Image
+from torch.utils.data import DataLoader
 import torch.optim as optim
 import matplotlib.pyplot as plt
 from codecarbon import OfflineEmissionsTracker
@@ -73,7 +72,7 @@ if __name__ == "__main__":
     test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    models_list = [(models.EfficientNetClassifier(num_classes=9).to(device), "EfficientNet")]
+    models_list = [(models.ResNetClassifier(num_classes=9).to(device), "ResNet18"), (models.EfficientNetClassifier(num_classes=9).to(device), "EfficientNet")]
 
     criterion = nn.CrossEntropyLoss()
     num_epochs = 20

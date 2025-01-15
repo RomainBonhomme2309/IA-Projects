@@ -1,17 +1,9 @@
 import os
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from PIL import Image
-import torchvision.transforms as transforms
 
 class ImageDataset(Dataset):
     def __init__(self, dataset, transform=None):
-        """
-        Dataset personnalisé pour PyTorch.
-
-        Args:
-            dataset (list): Liste de tuples (chemin_vers_image, label).
-            transform (callable, optional): Transformation à appliquer aux images.
-        """
         self.dataset = dataset
         self.transform = transform
 
@@ -20,10 +12,8 @@ class ImageDataset(Dataset):
 
     def __getitem__(self, idx):
         image_path, label = self.dataset[idx]
-        # Charger l'image avec PIL
         image = Image.open(image_path)
         
-        # Appliquer les transformations si disponibles
         if self.transform:
             image = self.transform(image)
 

@@ -36,7 +36,6 @@ model = models.ResNetClassifier(num_classes=9).to(device)
 model.load_state_dict(torch.load("best_model_ResNet18.pth", map_location=device))
 model.eval()
 
-# Gather predictions and true labels
 all_preds = []
 all_labels = []
 
@@ -56,5 +55,4 @@ plt.figure(figsize=(12, 12))
 disp.plot(cmap=plt.cm.Blues)
 
 plt.title("Confusion Matrix ResNet18")
-plt.savefig("confusion_matrix_ResNet18.pdf")
 plt.show()
