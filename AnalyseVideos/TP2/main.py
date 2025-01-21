@@ -192,5 +192,5 @@ if __name__ == "__main__":
             axes[idx].set_title(f"{labels_list[class_idx]}")
             axes[idx].axis("off")
 
-        plt.tight_layout()
+        plt.savefig(os.path.join("results", f"gradcam_{model_name}.pdf"))
         plt.show()
