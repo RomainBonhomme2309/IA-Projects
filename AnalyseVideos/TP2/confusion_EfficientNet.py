@@ -11,7 +11,8 @@ import dataset
 dataset_directory = os.path.join("datasets", "GITW_light")
 test_dataset_list = dataset.create_dataset(dataset_directory, train=False)
 
-labels_list = ["Bowl",
+labels_list = [
+    "Bowl",
     "CanOfCocaCola",
     "Jam",
     "MilkBottle",
@@ -19,13 +20,18 @@ labels_list = ["Bowl",
     "OilBottle",
     "Rice",
     "Sugar",
-    "VinegarBottle"]
+    "VinegarBottle",
+]
 
-transform = transforms.Compose([
-    transforms.Resize((566, 566)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-])
+transform = transforms.Compose(
+    [
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(
+            mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+        ),  # ImageNet normalization
+    ]
+)
 
 test_dataset = dataset.ImageDataset(test_dataset_list, transform=transform)
 test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
